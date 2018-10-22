@@ -2,7 +2,7 @@ from datetime import datetime
 from datetime import timedelta
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QTimer, QUrl, QDir, QPoint, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QUrl, QDir, QPoint
 from PyQt5.QtGui import QPainter, QPen, QPolygon
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QApplication, QProgressBar, QPushButton, QTextEdit, QMessageBox, QLabel
@@ -16,7 +16,6 @@ class Event():
 
 
 class MainWindow(QtWidgets.QWidget):
-    hitSignal=pyqtSignal(bool,int)
     def __init__(self, event_list):
         QtWidgets.QWidget.__init__(self)
         self.left = 0
@@ -249,7 +248,7 @@ if __name__ == "__main__":
     playlist.setPlaybackMode(QMediaPlaylist.Loop)
     player = QMediaPlayer()
     player.setPlaylist(playlist)
-    # player.play()
+    player.play()
 
     # events load and initilization
     event_list = []
