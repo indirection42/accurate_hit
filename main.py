@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 from datetime import timedelta
 
@@ -7,6 +8,11 @@ from PyQt5.QtGui import QPainter, QPen, QPolygon
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QApplication, QProgressBar, QPushButton, QTextEdit, QMessageBox, QLabel
 
+parser = argparse.ArgumentParser(description='hit-game')
+parser.add_argument('--tolerance', dest='tolerance', type=int, default=3, help='容许相差的天数')
+parser.add_argument('--total_times', dest='total_times', type=int, default=5, help='暂停时光机的次数')
+parser.add_argument('--ratio', dest='ratio', type=float, default=1, help='控制进度条的速度,数值越小速度越快')
+args = parser.parse_args()
 
 class Event():
     def __init__(self, event_name,  event_time):
@@ -27,8 +33,6 @@ class MainWindow(QtWidgets.QWidget):
 
 
 
-
-
         # variables initialization
         self.all_event_list=event_list
         self.passed_days = 0
@@ -38,8 +42,8 @@ class MainWindow(QtWidgets.QWidget):
 
         self.step=0
 
-        self.total_times = 5
-        self.tolerance = 3
+        self.total_times = args.total_times
+        self.tolerance = args.tolerance
         self.hit_times=0
         self.cnt=0
 
@@ -51,7 +55,7 @@ class MainWindow(QtWidgets.QWidget):
         self.pbar_height = 20
         self.pbar_left = (self.width - self.pbar_width) / 2
         self.pbar_top = self.height * 0.4
-        self.pbar_max = 370
+        self.pbar_max = 370 * args.ratio
         self.pbar.setGeometry(self.pbar_left, self.pbar_top, self.pbar_width, self.pbar_height)
         self.pbar.setRange(0, self.pbar_max)
 
