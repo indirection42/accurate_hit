@@ -1,18 +1,17 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QTimer,QUrl,QDir,QPoint,pyqtSignal
-from PyQt5.QtWidgets import QApplication, QProgressBar, QPushButton, QTextEdit,QMessageBox,QLabel,QGroupBox,QVBoxLayout
-from PyQt5.QtMultimedia import QMediaPlayer,QMediaPlaylist,QMediaContent
-from PyQt5.QtGui import QPainter,QPen,QPolygon
 from datetime import datetime
 from datetime import timedelta
-import random
 
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt, QTimer, QUrl, QDir, QPoint, pyqtSignal
+from PyQt5.QtGui import QPainter, QPen, QPolygon
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
+from PyQt5.QtWidgets import QApplication, QProgressBar, QPushButton, QTextEdit, QMessageBox, QLabel
 
 
 class Event():
     def __init__(self, event_name,  event_time):
         self.event_name = event_name
-        self.event_time = int(event_time)
+        self.event_time = datetime.strptime(str(event_time), "%Y%m%d")
 
 
 
@@ -25,21 +24,25 @@ class MainWindow(QtWidgets.QWidget):
         self.width = 1440
         self.height = 900
         self.setGeometry(self.left, self.top, self.width, self.height)
-        # self.setWindowTitle('ProgressBar')
+        self.setWindowTitle('一锤定音')
+
+
+
 
 
         # variables initialization
         self.all_event_list=event_list
-        self.event_list=random.sample(self.all_event_list,5)
-        self.event_list.sort(key=lambda x:x.event_time)
-        self.start_time = datetime.strptime('20080101', '%Y%m%d')
-        self.total_days=3700
-        self.total_times=4
+        self.passed_days = 0
+        self.page = 0
+        self.start_time = datetime.strptime('20110101', '%Y%m%d')
+
+
         self.step=0
-        self.tolerance=10
+
+        self.total_times = 5
+        self.tolerance = 3
         self.hit_times=0
         self.cnt=0
-
 
 
 
@@ -58,27 +61,14 @@ class MainWindow(QtWidgets.QWidget):
         self.textedit_list=[]
         self.points_list = []
         self.textedit_height = self.height * 0.3
-        self.textedit_num = len(self.event_list)
+        self.textedit_num = 5
         self.base_html = "<html><body><h2>h2_placeholder</h2><p>p_placeholder</p></body></html>"
         for i in range(self.textedit_num):
             textedit = QTextEdit(self)
             textedit.setGeometry(self.left + self.width / self.textedit_num * i, self.top,
                 self.width / self.textedit_num, self.textedit_height)
-            html = self.base_html.replace('h2_placeholder', str(self.event_list[i].event_time))
-            html = html.replace('p_placeholder', self.event_list[i].event_name)
-            textedit.setHtml(html)
-            textedit.setReadOnly(True)
-            days = (datetime.strptime(str(self.event_list[i].event_time), '%Y%m%d') - self.start_time).days
-            points = []
-            points.append(
-                QPoint(self.left + self.width / self.textedit_num * (i + 0.5), self.top + self.textedit_height))
-            points.append(QPoint(self.left + self.width / self.textedit_num * (i + 0.5),
-                self.pbar_top - (self.pbar_top - self.top - self.textedit_height) / (self.textedit_num + 1) * (i + 1)))
-            points.append(QPoint(self.pbar_left + days / self.total_days * self.pbar_width,
-                self.pbar_top - (self.pbar_top - self.top - self.textedit_height) / (self.textedit_num + 1) * (i + 1)))
-            points.append(QPoint(self.pbar_left + days / self.total_days * self.pbar_width, self.pbar_top))
-            self.points_list.append(points)
             self.textedit_list.append(textedit)
+        # self.nextPage()
 
 
         # push button initialization
@@ -100,19 +90,24 @@ class MainWindow(QtWidgets.QWidget):
 
         # label initialization
         self.label1=QLabel(self)
-        self.label_width=100
+        self.label_width = 400
         self.label_height=50
         self.label1_left=self.width*0.7
         self.label1_top=self.height*0.5
         self.label1.setGeometry(self.label1_left,self.label1_top,self.label_width,self.label_height)
-        self.label1.setText("击中次数"+str(self.cnt))
+        # self.label1.setText("你击中了{}次".format(self.cnt))
 
         self.label2=QLabel(self)
         self.label2_left=self.width*0.7
         self.label2_top=self.height*0.7
         self.label2.setGeometry(self.label2_left,self.label2_top,self.label_width,self.label_height)
-        self.label2.setText("剩余尝试次数"+str(self.total_times-self.hit_times))
+        # self.label2.setText("你还有{}次机会".format(self.total_times-self.hit_times))
 
+        self.label3 = QLabel(self)
+        self.label3_left = self.width * 0.7
+        self.label3_top = self.height * 0.6
+        self.label3.setGeometry(self.label3_left, self.label3_top, self.label_width, self.label_height)
+        # self.label3.setText("上次你距离最近的事件只差了{}天".format('x'))
 
         # timer initialization
         self.timer = QTimer()
@@ -120,11 +115,15 @@ class MainWindow(QtWidgets.QWidget):
 
 
 
+
         # connect signals and slots
         self.start_button.clicked.connect(self.hit)
         self.reset_button.clicked.connect(self.reset)
         self.timer.timeout.connect(self.stepPlus)
-        self.hitSignal.connect(self.msg)
+
+        self.show()
+        self.reset()
+        # QMessageBox.information(self, "游戏规则", "本游戏你一共有{}次按钮机暂停时间的机会，当击中的日期和最近的事件日期相差{}天以内时，即算击中，总共有{}个事件，最后将根据击中事件数的多少发放奖励".format(self.total_times,self.tolerance,len(self.all_event_list)), QMessageBox.Ok)
 
 
     def keyPressEvent(self, QKeyEvent):
@@ -145,21 +144,34 @@ class MainWindow(QtWidgets.QWidget):
 
     def stepPlus(self):
         if self.step>self.pbar_max:
-            self.step=0
+            if self.page < 5:
+                self.step = 0
+                self.passed_days += self.days_this_page
+                self.nextPage()
+            else:
+                self.timer.stop()
+                self.start_button.setText('Start')
         else:
             self.step = self.step + 1
         self.pbar.setValue(self.step)
-        now=self.start_time+timedelta(self.step/self.pbar_max*self.total_days)
-        now_str=now.strftime("%Y%m%d")
+        now = self.start_time + timedelta(int(self.step / self.pbar_max * self.days_this_page + self.passed_days))
+        now_str = now.strftime("%Y{}%m{}%d{}").format('年', '月', '日')
         self.pbar.setFormat(now_str)
 
 
     def hit(self):
-        if self.timer.isActive() and self.hit_times<self.total_times:
-            self.timer.stop()
-            self.start_button.setText('Start')
-            self.test_hit(self.pbar.value()/self.pbar_max*self.total_days)
-            self.updateInfo()
+        if self.timer.isActive():
+            if self.hit_times < self.total_times:
+                self.hit_times += 1
+                self.timer.stop()
+                self.start_button.setText('Start')
+                self.testHit(int(self.pbar.value() / self.pbar_max * self.days_this_page + self.passed_days))
+                self.updateLabel()
+            if self.hit_times == self.total_times:
+                QMessageBox.information(self, "",
+                    "时光机回到了现在，本次游戏中你一共成功了{}次，学院的发展离不开大家的支持，让我们一起努力吧，也许有一天你也能成为这些进展的主角！".format(self.cnt),
+                    QMessageBox.Ok)
+                self.reset()
         else:
             self.timer.start(self.timeout_interval)
             self.start_button.setText('Stop')
@@ -173,52 +185,55 @@ class MainWindow(QtWidgets.QWidget):
         self.step = 0
         self.hit_times=0
         self.cnt=0
-        self.event_list=random.sample(self.all_event_list,3)
-        self.event_list.sort(key=lambda x:x.event_time)
-        self.sample()
-        self.updateInfo()
+        self.page = 0
+        self.passed_days = 0
+        self.nextPage()
+        self.updateLabel()
         self.update()
+        QMessageBox.information(self, "时光穿梭机-游戏规则",
+            "过去的十年里，我们学院取得了一些进展，现在让我们一起坐着时光机来回顾一下吧。。。本游戏你一共有{}次暂停时光机的机会，当时光机停下的日期和最近的事件日期相差{}天以内时，即算成功1次，总共有{}个事件，最后将根据成功次数发放奖励".format(
+                self.total_times, self.tolerance, len(self.all_event_list)), QMessageBox.Ok)
 
-    def test_hit(self,value):
-        self.hit_times += 1
+    def testHit(self, value):
         diffs=[]
-        print((self.start_time+timedelta(value)).strftime('%Y%m%d'))
+        # print((self.start_time+timedelta(value)).strftime('%Y%m%d'))
         for event in self.event_list:
-            days=(datetime.strptime(str(event.event_time),'%Y%m%d')-self.start_time).days
+            days = (event.event_time - self.start_time).days
             diffs.append(abs(value-days))
-        print(diffs)
+        # print(diffs)
         if min(diffs)<self.tolerance:
-            self.hitSignal.emit(True,min(diffs))
+            self.label3.setText("上次你的时光机停在了正确的时间哦")
+            self.cnt += 1
         else:
-            self.hitSignal.emit(False,min(diffs))
+            self.label3.setText("上次你的时光机距离最近的事件只相差了{}天".format(min(diffs)))
 
-    def msg(self,status,value):
-        if status is True:
-            reply =QMessageBox.information(self,"result","You hit it! 和实际日期相差了{}天".format(value),QMessageBox.Ok)
-        else:
-            reply=QMessageBox.information(self,"result","Sorry, you did'nt hit it! 和实际日期相差了{}天".format(value),QMessageBox.Ok)
-
-    def sample(self):
-        self.event_list=random.sample(self.all_event_list,5)
-        self.event_list.sort(key=lambda x:x.event_time)
+    def nextPage(self):
+        self.event_list = self.all_event_list[self.page * 5:(self.page + 1) * 5]
+        self.days_this_page = int(((self.event_list[4].event_time - self.start_time).days - self.passed_days) * 1.01)
         self.points_list = []
         for i in range(len(self.event_list)):
-            html = self.base_html.replace('h2_placeholder', str(self.event_list[i].event_time))
+            html = self.base_html.replace('h2_placeholder',
+                datetime.strftime(self.event_list[i].event_time, "%Y{}%m{}%d{}").format('年', '月', '日'))
             html = html.replace('p_placeholder', self.event_list[i].event_name)
             self.textedit_list[i].setHtml(html)
-            days = (datetime.strptime(str(self.event_list[i].event_time), '%Y%m%d') - self.start_time).days
+            self.textedit_list[i].setReadOnly(True)
+            days = (self.event_list[i].event_time - self.start_time).days - self.passed_days
             points = []
             points.append(
                 QPoint(self.left + self.width / self.textedit_num * (i + 0.5), self.top + self.textedit_height))
             points.append(QPoint(self.left + self.width / self.textedit_num * (i + 0.5),
                 self.pbar_top - (self.pbar_top - self.top - self.textedit_height) / (self.textedit_num + 1) * (i + 1)))
-            points.append(QPoint(self.pbar_left + days / self.total_days * self.pbar_width,
+            points.append(QPoint(self.pbar_left + days / self.days_this_page * self.pbar_width,
                 self.pbar_top - (self.pbar_top - self.top - self.textedit_height) / (self.textedit_num + 1) * (i + 1)))
-            points.append(QPoint(self.pbar_left + days / self.total_days * self.pbar_width, self.pbar_top))
+            points.append(QPoint(self.pbar_left + days / self.days_this_page * self.pbar_width, self.pbar_top))
             self.points_list.append(points)
-    def updateInfo(self):
-        self.label1.setText("击中次数"+str(self.cnt))
-        self.label2.setText("剩余尝试次数"+str(self.total_times-self.hit_times))
+        self.update()
+        self.page += 1
+
+    def updateLabel(self):
+        self.label1.setText("你成功了{}次".format(self.cnt))
+        self.label2.setText("你还有{}次暂停时光机的机会哦".format(self.total_times - self.hit_times))
+
 
 if __name__ == "__main__":
     app = QApplication([])
@@ -234,9 +249,7 @@ if __name__ == "__main__":
     playlist.setPlaybackMode(QMediaPlaylist.Loop)
     player = QMediaPlayer()
     player.setPlaylist(playlist)
-    player.play()
-
-
+    # player.play()
 
     # events load and initilization
     event_list = []
@@ -246,9 +259,8 @@ if __name__ == "__main__":
             line=line.strip()
             event=line.split('#')
             event_list.append(Event(event[0],event[1]))
-
+    event_list.sort(key=lambda x: x.event_time)
 
     main_window = MainWindow(event_list)
 
-    main_window.show()
     app.exec_()
