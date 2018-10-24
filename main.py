@@ -154,6 +154,10 @@ class MainWindow(QtWidgets.QWidget):
             else:
                 self.timer.stop()
                 self.start_button.setText('Start')
+                QMessageBox.information(self, "",
+                    "时光机回到了现在，本次游戏中你一共成功了{}次，学院的发展离不开大家的支持，让我们一起努力吧，也许有一天你也能成为这些进展的主角！".format(self.cnt),
+                    QMessageBox.Ok)
+                self.reset()
         else:
             self.step = self.step + 1
         self.pbar.setValue(self.step)
@@ -252,7 +256,7 @@ if __name__ == "__main__":
     playlist.setPlaybackMode(QMediaPlaylist.Loop)
     player = QMediaPlayer()
     player.setPlaylist(playlist)
-    player.play()
+    # player.play()
 
     # events load and initilization
     event_list = []
