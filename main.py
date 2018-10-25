@@ -28,8 +28,8 @@ class MainWindow(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self)
         self.left = 0
         self.top = 0
-        self.width = 1440
-        self.height = 900
+        self.width = args.width
+        self.height = args.height
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setWindowTitle('一锤定音')
 
