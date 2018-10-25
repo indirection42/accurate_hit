@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description='hit-game')
 parser.add_argument('--tolerance', dest='tolerance', type=int, default=3, help='容许相差的天数')
 parser.add_argument('--total_times', dest='total_times', type=int, default=5, help='暂停时光机的次数')
 parser.add_argument('--ratio', dest='ratio', type=float, default=1, help='控制进度条的速度,数值越小速度越快')
+parser.add_argument('--timeout_interval', dest='timeout_interval', type=int, default=1)
 args = parser.parse_args()
 
 class Event():
@@ -37,7 +38,7 @@ class MainWindow(QtWidgets.QWidget):
         self.all_event_list=event_list
         self.passed_days = 0
         self.page = 0
-        self.start_time = datetime.strptime('20110101', '%Y%m%d')
+        self.start_time = datetime.strptime('20110301', '%Y%m%d')
 
 
         self.step=0
@@ -55,7 +56,7 @@ class MainWindow(QtWidgets.QWidget):
         self.pbar_height = 20
         self.pbar_left = (self.width - self.pbar_width) / 2
         self.pbar_top = self.height * 0.4
-        self.pbar_max = 370 * args.ratio
+        self.pbar_max = 250 * args.ratio
         self.pbar.setGeometry(self.pbar_left, self.pbar_top, self.pbar_width, self.pbar_height)
         self.pbar.setRange(0, self.pbar_max)
 
@@ -114,7 +115,7 @@ class MainWindow(QtWidgets.QWidget):
 
         # timer initialization
         self.timer = QTimer()
-        self.timeout_interval = 1
+        self.timeout_interval = args.timeout_interval
 
 
 
