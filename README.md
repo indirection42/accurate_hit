@@ -17,3 +17,6 @@ download zip files
 5. Tune parameters like(parameters in the example are default parameters):
 `python main.py --total_times 25 --tolerance 1 --timeout_interval 50`  
 also `python main.py -h` to get details
+
+# Bugs
+由于一开始没用布局管理器，窗口resize会有问题，暂时只能用命令行参数设置需要的参数了

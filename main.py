@@ -9,9 +9,10 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QApplication, QProgressBar, QPushButton, QTextEdit, QMessageBox, QLabel
 
 parser = argparse.ArgumentParser(description='hit-game')
+parser.add_argument('--width', dest='width', type=int, default=1440)
+parser.add_argument('--height', dest='height', type=int, default=900)
 parser.add_argument('--tolerance', dest='tolerance', type=int, default=1, help='容许相差的天数')
 parser.add_argument('--total_times', dest='total_times', type=int, default=25, help='暂停时光机的次数')
-# parser.add_argument('--ratio', dest='ratio', type=float, default=1, help='控制进度条的速度,数值越小速度越快')
 parser.add_argument('--timeout_interval', dest='timeout_interval', type=int, default=50, help='控制进度条速度，数值越小速度越快')
 args = parser.parse_args()
 
