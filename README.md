@@ -1,13 +1,19 @@
 # Description
 40周年院庆-小游戏
 
-# Basic Functions
-- [x] 详细布局确定
-- [x] 文字加载
-- [x] 实时显示具体时间
-- [x] 成功/失败交互
-- [x] 背景音乐
 
-# Features
+# Usage
 
-# Bugs to be fixed
+1. Clone this project or download:  
+`git clone https://github.com/r3dir3ct/accurate_hit`  
+or  
+download zip files
+
+2. Create a new virtual python3 environment using `anaconda`, `venv`, `virtualenv` etc.
+3. Install required dependencies(actually only pyqt5):  
+   `pip intall -r requirements.txt`
+4. Run
+    `python main.py`
+5. Tune parameters like(parameters in the example are default parameters):
+`python main.py --total_times 25 --tolerance 1 --timeout_interval 50`  
+also `python main.py -h` to get details

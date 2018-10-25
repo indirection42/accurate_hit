@@ -9,10 +9,10 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QApplication, QProgressBar, QPushButton, QTextEdit, QMessageBox, QLabel
 
 parser = argparse.ArgumentParser(description='hit-game')
-parser.add_argument('--tolerance', dest='tolerance', type=int, default=3, help='容许相差的天数')
-parser.add_argument('--total_times', dest='total_times', type=int, default=5, help='暂停时光机的次数')
-parser.add_argument('--ratio', dest='ratio', type=float, default=1, help='控制进度条的速度,数值越小速度越快')
-parser.add_argument('--timeout_interval', dest='timeout_interval', type=int, default=1)
+parser.add_argument('--tolerance', dest='tolerance', type=int, default=1, help='容许相差的天数')
+parser.add_argument('--total_times', dest='total_times', type=int, default=25, help='暂停时光机的次数')
+# parser.add_argument('--ratio', dest='ratio', type=float, default=1, help='控制进度条的速度,数值越小速度越快')
+parser.add_argument('--timeout_interval', dest='timeout_interval', type=int, default=50, help='控制进度条速度，数值越小速度越快')
 args = parser.parse_args()
 
 class Event():
@@ -56,7 +56,7 @@ class MainWindow(QtWidgets.QWidget):
         self.pbar_height = 20
         self.pbar_left = (self.width - self.pbar_width) / 2
         self.pbar_top = self.height * 0.4
-        self.pbar_max = 250 * args.ratio
+        self.pbar_max = 250
         self.pbar.setGeometry(self.pbar_left, self.pbar_top, self.pbar_width, self.pbar_height)
         self.pbar.setRange(0, self.pbar_max)
 
@@ -209,7 +209,7 @@ class MainWindow(QtWidgets.QWidget):
             days = (event.event_time - self.start_time).days
             diffs.append(abs(value-days))
         # print(diffs)
-        if min(diffs)<self.tolerance:
+        if min(diffs) <= self.tolerance:
             self.label3.setText("上次你的时光机停在了正确的时间哦")
             self.cnt += 1
         else:
