@@ -114,6 +114,13 @@ class MainWindow(QtWidgets.QWidget):
         self.label3.setGeometry(self.label3_left, self.label3_top, self.label_width, self.label_height)
         # self.label3.setText("上次你距离最近的事件只差了{}天".format('x'))
 
+        self.label4 = QLabel(self)
+        self.label4_left = self.width * 0.1
+        self.label4_top = self.height * 0.5
+        self.label4.setGeometry(self.label4_left, self.label4_top, self.label_width, self.label_height * 2)
+        self.label4.setText("11-14次准确停下时光机可以获得1个章\n\n15-18次准确停下时光机可以获得2个章\n\n19-25次准确停下时光机可以获得3个章")
+
+
         # timer initialization
         self.timer = QTimer()
         self.timeout_interval = args.timeout_interval
@@ -240,7 +247,7 @@ class MainWindow(QtWidgets.QWidget):
         self.page += 1
 
     def updateLabel(self):
-        self.label1.setText("你成功了{}次".format(self.cnt))
+        self.label1.setText("你已经{}次把时光机停在了正确的位置".format(self.cnt))
         self.label2.setText("你还有{}次暂停时光机的机会哦".format(self.total_times - self.hit_times))
 
 
